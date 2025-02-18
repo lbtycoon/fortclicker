@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FortBakery 2.0 - Ultimate Clicker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Burbank+Big+Condensed&display=swap');
+        
+        :root {
+            --primary: #9147ff;
+            --secondary: #41e2ff;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --text: #e2e8f0;
+            --accent: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Burbank Big Condensed', sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem;
+            background: var(--surface);
+            border-bottom: 2px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .header h1 {
+            font-size: 4rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .attributes {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .attribute {
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        .attribute-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .attribute-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.3s ease;
+        }
+
+        .clicker {
+            text-align: center;
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .vbucks {
+            font-size: 3rem;
+            margin: 1rem 0;
+            color: var(--accent);
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .click-button {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border: none;
+            padding: 2rem;
+            font-size: 2rem;
+            color: white;
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .click-button:active {
+            transform: scale(0.95);
+        }
+
+        .click-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .click-button:active::after {
+            opacity: 0.4;
+        }
+
+        .upgrades {
+            max-height: 80vh;
+            overflow-y: auto;
+            padding-right: 1rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) var(--surface);
+        }
+
+        .upgrades::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .upgrades::-webkit-scrollbar-track {
+            background: var(--surface);
+        }
+
+        .upgrades::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        .upgrade-item {
+            background: var(--surface);
+            margin: 0.5rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .upgrade-item:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .upgrade-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .name-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--primary);
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1.2rem;
+            width: 100%;
+            max-width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .name-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 10px rgba(65, 226, 255, 0.3);
+        }
+
+        .floating-number {
+            position: absolute;
+            animation: float-up 1s ease-out forwards;
+            pointer-events: none;
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+        }
+
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .notification {
+            background: var(--surface);
+            color: var(--text);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease forwards, fadeOut 0.3s ease forwards 2.7s;
+            max-width: 300px;
+        }
+
+        .notification.success {
+            border-left-color: #10B981;
+        }
+
+        .notification.warning {
+            border-left-color: #F59E0B;
+        }
+
+        .notification.error {
+            border-left-color: #EF4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="notification-container" id="notification-container"></div>
+
+    <div class="header">
+        <h1>FortBakery 2.0</h1>
+        <input type="text" class="name-input" placeholder="Enter your name" maxlength="20">
+    </div>
+
+    <div class="container">
+        <div class="attributes">
+            <h2>Player Attributes</h2>
+            <div class="attribute">
+                <div>Building Skill: <span id="skill-building">0</span></div>
+                <div class="attribute-bar">
+                    <div class="attribute-progress" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="attribute">
+                <div>Mechanics: <span id="skill-mechanics">0</span></div>
+                <div class="attribute-bar">
+                    <div class="attribute-progress" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="attribute">
+                <div>Game Sense: <span id="skill-gamesense">0</span></div>
+                <div class="attribute-bar">
+                    <div class="attribute-progress" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="attribute">
+                <div>Aim: <span id="skill-aim">0</span></div>
+                <div class="attribute-bar">
+                    <div class="attribute-progress" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="attribute">
+                <div>Rotation: <span id="skill-rotation">0</span></div>
+                <div class="attribute-bar">
+                    <div class="attribute-progress" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="clicker">
+            <div class="vbucks">0 V-Bucks</div>
+            <button class="click-button">CLICK</button>
+            <div class="stats">
+                <div class="stat-box">
+                    <div>Click Power</div>
+                    <div id="click-power">1</div>
+                </div>
+                <div class="stat-box">
+                    <div>Auto V-Bucks/sec</div>
+                    <div id="auto-clicks">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="upgrades">
+            <h2>Upgrades</h2>
+            <div id="upgrade-list"></div>
+        </div>
+    </div>
+
+    <script>
+        let gameState = JSON.parse(localStorage.getItem('fortbakeryState')) || {
+            vbucks: 0,
+            clickPower: 1,
+            autoClickPower: 0,
+            playerName: '',
+            bonusApplied: false,
+            hadBonus: false,
+            attributes: {
+                building: 0,
+                mechanics: 0,
+                gamesense: 0,
+                aim: 0,
+                rotation: 0
+            },
+            upgrades: {
+                pickaxe: { name: 'Better Pickaxe', level: 1, cost: 10, power: 1, multiplier: 1.5, type: 'click' },
+                builder: { name: 'Auto Builder', level: 0, cost: 50, power: 1, multiplier: 1.8, type: 'auto' },
+                squad: { name: 'Squad Bonus', level: 0, cost: 200, power: 5, multiplier: 2, type: 'both' },
+                battlepass: { name: 'Battle Pass', level: 0, cost: 1000, power: 20, multiplier: 2.5, type: 'both' },
+                victory: { name: 'Victory Royale', level: 0, cost: 5000, power: 100, multiplier: 3, type: 'both' },
+                turboBuilding: { name: 'Turbo Building', level: 0, cost: 100, power: 2, multiplier: 1.6, type: 'building' },
+                editSpeed: { name: 'Edit Speed Master', level: 0, cost: 300, power: 3, multiplier: 1.7, type: 'mechanics' },
+                boxFighting: { name: 'Box Fighting Pro', level: 0, cost: 800, power: 5, multiplier: 1.9, type: 'both' },
+                aimTraining: { name: 'Aim Training', level: 0, cost: 150, power: 2, multiplier: 1.6, type: 'aim' },
+                weaponMastery: { name: 'Weapon Mastery', level: 0, cost: 400, power: 4, multiplier: 1.8, type: 'both' },
+                peekShots: { name: 'Peek Shot Expert', level: 0, cost: 1000, power: 6, multiplier: 2, type: 'mechanics' },
+                rotationMaster: { name: 'Rotation Master', level: 0, cost: 250, power: 3, multiplier: 1.7, type: 'rotation' },
+                stormSense: { name: 'Storm Sense', level: 0, cost: 600, power: 4, multiplier: 1.8, type: 'gamesense' },
+                positioning: { name: 'Elite Positioning', level: 0, cost: 1500, power: 7, multiplier: 2.1, type: 'both' },
+                pieceControl: { name: 'Piece Control', level: 0, cost: 2000, power: 10, multiplier: 2.2, type: 'mechanics' },
+                retakes: { name: 'High Ground Retakes', level: 0, cost: 3000, power: 15, multiplier: 2.3, type: 'building' },
+                preEdits: { name: 'Pre-Edit Master', level: 0, cost: 4000, power: 20, multiplier: 2.4, type: 'mechanics' },
+                tunneling: { name: 'Tunneling Expert', level: 0, cost: 8000, power: 30, multiplier: 2.5, type: 'building' },
+                tarping: { name: 'Tarping Master', level: 0, cost: 10000, power: 40, multiplier: 2.6, type: 'mechanics' },
+                endgame: { name: 'Endgame Specialist', level: 0, cost: 15000, power: 50, multiplier: 2.7, type: 'gamesense' }
+            }
+        };
+
+        const vbucksDisplay = document.querySelector('.vbucks');
+        const clickButton = document.querySelector('.click-button');
+        const upgradeList = document.getElementById('upgrade-list');
+        const nameInput = document.querySelector('.name-input');
+        const clickPowerDisplay = document.getElementById('click-power');
+        const autoClicksDisplay = document.getElementById('auto-clicks');
+        
+        const skillDisplays = {
+            building: document.getElementById('skill-building'),
+            mechanics: document.getElementById('skill-mechanics'),
+            gamesense: document.getElementById('skill-gamesense'),
+            aim: document.getElementById('skill-aim'),
+            rotation: document.getElementById('skill-rotation')
+        };
+
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            container.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function formatNumber(num) {
+            if (num >= 1e12) return (num / 1e12).toFixed(1) + 'T';
+            if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+            return num.toFixed(0);
+        }
+
+        function updateDisplay() {
+            vbucksDisplay.textContent = `${formatNumber(gameState.vbucks)} V-Bucks`;
+            clickPowerDisplay.textContent = formatNumber(gameState.clickPower);
+            autoClicksDisplay.textContent = formatNumber(gameState.autoClickPower);
+            
+            Object.keys(gameState.attributes).forEach(attr => {
+                const display = document.getElementById(`skill-${attr}`);
+                if (display) {
+                    display.textContent = gameState.attributes[attr].toFixed(1);
+                    const bar = display.parentElement.querySelector('.attribute-progress');
+                    if (bar) {
+                        bar.style.width = `${Math.min(100, (gameState.attributes[attr] / 100) * 100)}%`;
+                    }
+                }
+            });
+            
+            renderUpgrades();
+            saveGame();
+        }
+
+        function createFloatingNumber(amount) {
+            const floatingNumber = document.createElement('div');
+            floatingNumber.className = 'floating-number';
+            floatingNumber.textContent = `+${formatNumber(amount)}`;
+            
+            const randomX = Math.random() * 100 - 50;
+            floatingNumber.style.left = `calc(50% + ${randomX}px)`;
+            
+            clickButton.parentElement.appendChild(floatingNumber);
+            
+            setTimeout(() => floatingNumber.remove(), 1000);
+        }
+
+        function click() {
+            const amount = gameState.clickPower;
+            gameState.vbucks += amount;
+            createFloatingNumber(amount);
+            updateDisplay();
+        }
+
+        function checkName() {
+            const name = nameInput.value.toLowerCase();
+            if (name === 'lachlanisdaddy' && !gameState.bonusApplied) {
+                const bonus = 6942069420;
+                gameState.vbucks += bonus;
+                gameState.bonusApplied = true;
+                gameState.hadBonus = true;
+                showNotification(`SECRET NAME BONUS ACTIVATED! +${formatNumber(bonus)} V-Bucks!`, 'success');
+                updateDisplay();
+            } else if (gameState.bonusApplied && name !== 'lachlanisdaddy') {
+                const penalty = gameState.vbucks * 2;
+                gameState.vbucks = Math.max(0, gameState.vbucks - penalty);
+                gameState.bonusApplied = false;
+                
+                gameState.clickPower = Math.max(1, Math.floor(gameState.clickPower * 0.5));
+                gameState.autoClickPower = Math.max(0, Math.floor(gameState.autoClickPower * 0.5));
+                
+                showNotification(`NAME CHANGE PENALTY! -${formatNumber(penalty)} V-Bucks!`, 'error');
+                showNotification('All powers reduced by 50%!', 'warning');
+                updateDisplay();
+            }
+        }
+
+        function purchaseUpgrade(upgradeKey) {
+            const upgrade = gameState.upgrades[upgradeKey];
+            if (gameState.vbucks >= upgrade.cost) {
+                gameState.vbucks -= upgrade.cost;
+                upgrade.level++;
+                upgrade.cost = Math.floor(upgrade.cost * upgrade.multiplier);
+                
+                if (upgrade.type === 'click' || upgrade.type === 'both') {
+                    gameState.clickPower += upgrade.power;
+                }
+                if (upgrade.type === 'auto' || upgrade.type === 'both') {
+                    gameState.autoClickPower += upgrade.power;
+                }
+                
+                if (upgrade.type in gameState.attributes) {
+                    gameState.attributes[upgrade.type] += upgrade.power * 0.1;
+                }
+                
+                showNotification(`Purchased ${upgrade.name}!`, 'success');
+                updateDisplay();
+            } else {
+                showNotification(`Not enough V-Bucks for ${upgrade.name}!`, 'error');
+            }
+        }
+
+        function renderUpgrades() {
+            upgradeList.innerHTML = '';
+            Object.entries(gameState.upgrades).forEach(([key, upgrade]) => {
+                const div = document.createElement('div');
+                div.className = `upgrade-item ${gameState.vbucks < upgrade.cost ? 'disabled' : ''}`;
+                div.innerHTML = `
+                    <div>
+                        <div>${upgrade.name} (Level ${upgrade.level})</div>
+                        <div>Cost: ${formatNumber(upgrade.cost)} V-Bucks</div>
+                        <div>Power: +${formatNumber(upgrade.power)}</div>
+                    </div>
+                `;
+                div.onclick = () => purchaseUpgrade(key);
+                upgradeList.appendChild(div);
+            });
+        }
+
+        function saveGame() {
+            localStorage.setItem('fortbakeryState', JSON.stringify(gameState));
+        }
+
+        setInterval(() => {
+            if (gameState.autoClickPower > 0) {
+                gameState.vbucks += gameState.autoClickPower;
+                updateDisplay();
+            }
+        }, 1000);
+
+        clickButton.addEventListener('click', click);
+        nameInput.addEventListener('input', checkName);
+
+        updateDisplay();
+        
+        if (gameState.playerName) {
+            nameInput.value = gameState.playerName;
+        }
+
+        showNotification('Welcome to FortBakery 2.0!', 'success');
+    </script>
+</body>
+</html>
